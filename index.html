@@ -170,17 +170,35 @@
   ];
 
   async function start() {
-    for (let i = 0; i < path.length; i++) {
-      moveTo(path[i].pos);
-      renderDice();
 
-      await new Promise(r => setTimeout(r, 700));
+  //RESETAR estado do dado
+  diceState = {
+    top: 5,
+    bottom: 2,
+    front: 1,
+    back: 6,
+    left: 3,
+    right: 4
+  };
 
-      if (i < moves.length) {
-        moves[i]();
-      }
+  //RESETAR posição inicial
+  moveTo("A2");
+  renderDice();
+
+  // pequena pausa para evitar glitch visual
+  await new Promise(r => setTimeout(r, 300));
+
+  for (let i = 0; i < path.length; i++) {
+    moveTo(path[i].pos);
+    renderDice();
+
+    await new Promise(r => setTimeout(r, 700));
+
+    if (i < moves.length) {
+      moves[i]();
     }
   }
+}
 
   // posição inicial
   moveTo("A2");
