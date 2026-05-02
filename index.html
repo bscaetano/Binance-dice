@@ -43,13 +43,14 @@
   }
 
   .controls {
-    position: absolute;
-    top: 340px;
+    margin-top: 20px;
+    text-align: center;
   }
 
   button {
     padding: 10px 15px;
     font-size: 16px;
+    margin: 5px;
     cursor: pointer;
   }
 </style>
@@ -59,8 +60,10 @@
 
 <div>
   <div class="board" id="board"></div>
+
   <div class="controls">
-    <button onclick="start()">Iniciar movimento</button>
+    <button id="startBtn" onclick="start()">Iniciar movimento</button>
+    <button onclick="reset()">Reset</button>
   </div>
 </div>
 
@@ -70,7 +73,6 @@
   const cols = ["A", "B", "C"];
   const rows = [1, 2, 3];
 
-  // Criar tabuleiro
   rows.forEach(r => {
     cols.forEach(c => {
       const cell = document.createElement("div");
@@ -81,23 +83,14 @@
     });
   });
 
-  // Criar dado
   const dice = document.createElement("div");
   dice.className = "dice";
   board.appendChild(dice);
 
-  // Estado inicial do dado
-  let diceState = {
-    top: 5,
-    bottom: 2,
-    front: 1,
-    back: 6,
-    left: 3,
-    right: 4
-  };
+  let running = false;
 
-  // Caminho com valores esperados no topo
-  const path = [
+  // Caminho + topo esperado
+  const steps = [
     { pos: "A2", top: 5 },
     { pos: "B2", top: 3 },
     { pos: "B1", top: 1 },
@@ -117,92 +110,41 @@
     };
   }
 
-  function renderDice() {
-    dice.innerText = diceState.top;
-  }
-
   function moveTo(cellId) {
     const pos = getCellPosition(cellId);
     dice.style.left = pos.left + "px";
     dice.style.top = pos.top + "px";
   }
 
-  // Movimentos físicos do dado
-  function rollRight() {
-    let t = diceState.top;
-    diceState.top = diceState.left;
-    diceState.left = diceState.bottom;
-    diceState.bottom = diceState.right;
-    diceState.right = t;
+  function render(top) {
+    dice.innerText = top;
   }
-
-  function rollLeft() {
-    let t = diceState.top;
-    diceState.top = diceState.right;
-    diceState.right = diceState.bottom;
-    diceState.bottom = diceState.left;
-    diceState.left = t;
-  }
-
-  function rollForward() {
-    let t = diceState.top;
-    diceState.top = diceState.back;
-    diceState.back = diceState.bottom;
-    diceState.bottom = diceState.front;
-    diceState.front = t;
-  }
-
-  function rollBackward() {
-    let t = diceState.top;
-    diceState.top = diceState.front;
-    diceState.front = diceState.bottom;
-    diceState.bottom = diceState.back;
-    diceState.back = t;
-  }
-
-  // Sequência ajustada (considerando a lógica do post)
-  const moves = [
-    () => rollLeft(),    // A2 -> B2
-    () => rollForward(), // B2 -> B1
-    () => rollLeft(),    // B1 -> C1
-    () => rollBackward(),// C1 -> C2
-    () => rollBackward() // C2 -> C3
-  ];
 
   async function start() {
+    if (running) return;
 
-  //RESETAR estado do dado
-  diceState = {
-    top: 5,
-    bottom: 2,
-    front: 1,
-    back: 6,
-    left: 3,
-    right: 4
-  };
+    running = true;
+    document.getElementById("startBtn").disabled = true;
 
-  //RESETAR posição inicial
-  moveTo("A2");
-  renderDice();
+    for (let i = 0; i < steps.length; i++) {
+      moveTo(steps[i].pos);
+      render(steps[i].top);
 
-  // pequena pausa para evitar glitch visual
-  await new Promise(r => setTimeout(r, 300));
-
-  for (let i = 0; i < path.length; i++) {
-    moveTo(path[i].pos);
-    renderDice();
-
-    await new Promise(r => setTimeout(r, 700));
-
-    if (i < moves.length) {
-      moves[i]();
+      await new Promise(r => setTimeout(r, 700));
     }
   }
-}
 
-  // posição inicial
+  function reset() {
+    running = false;
+    document.getElementById("startBtn").disabled = false;
+
+    moveTo("A2");
+    render(5);
+  }
+
+  // inicial
   moveTo("A2");
-  renderDice();
+  render(5);
 </script>
 
 </body>
